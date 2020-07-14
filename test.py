@@ -11,11 +11,11 @@ stim.add_image('test/two.png')
 stim.add_image('test/three.png')
 stim.add_image('test/four.png')
 stim.add_image('test/five.png')
-stim.set_refresh_rate(1.0)
+stim.set_refresh_rate(5)
 stim.set_initial_delay(.5)
 stim.set_final_delay(.5)
 
-disp = display.Display(False)
+disp = display.Display(full_screen=False)
 
 def foo(k, t):
     print(f'Foo {k} at {t}')

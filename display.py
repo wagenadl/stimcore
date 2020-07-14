@@ -9,10 +9,13 @@ from collections import namedtuple
 class Display(QWidget):
     app = QApplication.instance()
 
-    def __init__(self, full_screen=True):
+    def __init__(self, screen_number=0, full_screen=True):
         '''DISPLAY - Canvas for displaying images
         DISPLAY() creates a full-screen display window.
+        Optional argument SCREEN_NUMBER specifies the number of the monitor
+        on which to display (counting from zero).
         DISPLAY(full_screen=False) creates a smaller window for testing.'''
+
         Display.app = QApplication.instance()
         if Display.app is None:
             Display.app = QApplication(['stimcore'])
@@ -24,17 +27,24 @@ class Display(QWidget):
         self.stim = None
         self.callbacks = []
         self.photodiodes = []
-        
-        if full_screen:
-            self.setWindowState(Qt.WindowFullScreen)
-        else:
-            self.resize(640, 480)
+
         self.show()
-        Display.app.exec() # This forces screen to be painted black
         # The paintEvent causes the app to then exit immediately if k is None.
         # Oddly, just running processEvents doesn't cause repaint
 
+        # If we don't show() first, we don't have a window handle, so
+        # we cannot send ourselves to requested screen.
+        scrs = Display.app.screens()
+        if screen_number >= len(scrs):
+            raise ValueError('Nonexistent screen')
+        self.windowHandle().setScreen(scrs[screen_number])
+        if full_screen:
+            self.showFullScreen()
+        else:
+            self.resize(640, 480)
+        Display.app.exec() # This forces window to be painted black
 
+        
     def add_photodiode(self, rect, period=2, delay=0):
         '''ADD_PHOTODIODE - Add a photodiode signal
         ADD_PHOTODIODE([x,y,w,h]) causes a rectangle to flash on and off
@@ -68,17 +78,21 @@ class Display(QWidget):
     def width_cm(self):
         '''WIDTH_CM - Width of the window in centimeters
         WIDTH_CM() returns the width of the window in centimeters.'''
-        desk = Display.app.desktop()
-        wpix = desk.width()
-        wmm = desk.widthMM()
+        scr = self.windowHandle().screen()
+        sizpix = scr.size()
+        sizmm = scr.physicalSize()
+        wpix = sizpix.width()
+        wmm = sizmm.width()
         return (wmm/10) * self.width_pixels() / wpix
 
     def height_cm(self):
         '''HEIGHT_CM - Height of the window in centimeters
         HEIGHT_CM() returns the height of the window in centimeters.'''
-        desk = Display.app.desktop()
-        hpix = desk.height()
-        hmm = desk.heightMM()
+        scr = self.windowHandle().screen()
+        sizpix = scr.size()
+        sizmm = scr.physicalSize()
+        hpix = sizpix.height()
+        hmm = sizmm.height()
         return (hmm/10) * self.height_pixels() / hpix
 
     def timeout(self):
@@ -94,9 +108,11 @@ class Display(QWidget):
             self.update()
         elif self.k == self.N:
             if self.stim.final_delay_s>0:
+                print('prefinal')
                 self.update()
                 self.timer.setInterval(1000 * self.stim.final_delay_s)
             else:
+                print('final')
                 self.k = None
                 Display.app.quit()
         else:
@@ -155,7 +171,8 @@ class Display(QWidget):
         p.fillRect(QRect(0,0,self.width(),self.height()),
                    QColor(rgb[0], rgb[1], rgb[2]))
         if self.k is None or self.k<0 or self.k>=self.N:
-            Display.app.quit()
+            if self.k is None:
+                Display.app.quit()
             return
         iw = self.pixmap.width() # image size (pix)
         ih = self.pixmap.height()
