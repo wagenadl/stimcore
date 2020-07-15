@@ -2,7 +2,7 @@
 
 from PyQt5.QtWidgets import QWidget, QApplication
 from PyQt5.QtCore import Qt, QTimer, QRect, QTime
-from PyQt5.QtGui import QPainter, QColor
+from PyQt5.QtGui import QPainter, QColor, QCursor, QBitmap
 import time
 from collections import namedtuple
 
@@ -43,7 +43,7 @@ class Display(QWidget):
         else:
             self.resize(640, 480)
         Display.app.exec() # This forces window to be painted black
-
+        self.setCursor(QCursor(QBitmap(1,1), QBitmap(1,1)))
         
     def add_photodiode(self, rect, period=2, delay=0):
         '''ADD_PHOTODIODE - Add a photodiode signal
