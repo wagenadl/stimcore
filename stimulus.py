@@ -14,18 +14,37 @@ class Stimulus:
         self.initial_delay_s = 0
         self.final_delay_s = 0
         self.background = [0,0,0]
+
+    def add_image(self, img, label=None):
+        '''ADD_IMAGE - Add an image to the list
+        id = ADD_IMAGE(img) adds an image to our collection.
+        IMG may either be a filename or a numpy array.
+        This is just a convenience function over ADD_IMAGE_FROM_FILE
+        and ADD_IMAGE_FROM_ARRAY.
+        Optional argument LABEL may be used to give the image an alternative
+        name.'''
+        if type(img)==str:
+            return add_image_from_file(img, label)
+        elif type(img)==np.ndarray:
+            return add_image_from_array(img, label)
+        else:
+            raise ValueError('Must have a filename or a numpy array')
         
-    def add_image_from_file(self, fn):
+    def add_image_from_file(self, fn, label=None):
         '''ADD_IMAGE_FROM_FILE - Add an image to the list
         id = ADD_IMAGE_FROM_FILE(fn) adds an image to our collection
         based on its filename. The returned ID is an integer that can 
         be used in SET_ORDER. IDs count up from zero, so you can also 
-        keep count yourself.'''
+        keep count yourself.
+        Optional argument LABEL uses something other than the filename
+        as the name for the image.'''
         Stimulus.app = QApplication.instance()
         if Stimulus.app is None:
             Stimulus.app = QApplication(['stimcore'])
 
-        self.fns.append(fn)
+        if label is None:
+            label = fn
+        self.fns.append(label)
         self.pixmaps.append(QPixmap(fn))
         return len(self.fns) - 1
 
