@@ -1,7 +1,8 @@
 #!/usr/bin/python3
 
-import stimulus
-import display
+import stimcore.stimulus as stimulus
+import stimcore.display as display
+
 from PyQt5.QtWidgets import QApplication
 import sys
 import numpy as np
@@ -41,4 +42,6 @@ stim.set_order([0,1,2,3,4, 5, 4,3,2,1,0])
 
 disp.run(stim)
 disp.add_photodiode((10, 10, 20, 20), delay=1, period=3)
+disp.add_gpio(25)
+disp.add_gpio(22, delay=1, period=3)
 disp.run(stim, [100, 100, 400, 300])

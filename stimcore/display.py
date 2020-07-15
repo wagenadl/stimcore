@@ -5,6 +5,7 @@ from PyQt5.QtCore import Qt, QTimer, QRect, QTime
 from PyQt5.QtGui import QPainter, QColor, QCursor, QBitmap
 import time
 from collections import namedtuple
+from . import gpio
 
 class Display(QWidget):
     app = QApplication.instance()
@@ -27,6 +28,7 @@ class Display(QWidget):
         self.stim = None
         self.callbacks = []
         self.photodiodes = []
+        self.gpios = []
 
         self.show()
         # The paintEvent causes the app to then exit immediately if k is None.
@@ -44,6 +46,11 @@ class Display(QWidget):
             self.resize(640, 480)
         Display.app.exec() # This forces window to be painted black
         self.setCursor(QCursor(QBitmap(1,1), QBitmap(1,1)))
+
+    def add_gpio(self, pin, period=2, delay=0):
+        gpio.make_output(pin)
+        T = namedtuple('GP', ['pin', 'period', 'delay'])
+        self.gpios.append(T._make((pin, period, delay)))
         
     def add_photodiode(self, rect, period=2, delay=0):
         '''ADD_PHOTODIODE - Add a photodiode signal
@@ -107,6 +114,8 @@ class Display(QWidget):
             self.pixmap = self.stim.get_image(self.order[self.k])
             self.update()
         elif self.k == self.N:
+            for gp in self.gpios:
+                gpio.write(gp.pin, 0)
             if self.stim.final_delay_s>0:
                 print('prefinal')
                 self.update()
@@ -147,12 +156,16 @@ class Display(QWidget):
         self.pdphases = []
         for pd in self.photodiodes:
             self.pdphases.append(pd.period - pd.delay)
+        self.gpphases = []
+        for gp in self.gpios:
+            self.gpphases.append(gp.period - gp.delay)
             
         if self.stim.initial_delay_s>0:
             self.timer.setInterval(self.stim.initial_delay_s * 1000)
         else:
             self.timeout()
         self.timer.start()
+
 
         if True:
             Display.app.exec()
@@ -184,19 +197,38 @@ class Display(QWidget):
         x0 = self.target[0] + (ww-sw)//2 # margin
         y0 = self.target[1] + (wh-sh)//2
         p.drawPixmap(QRect(x0, y0, sw, sh), self.pixmap)
-        for k in range(len(self.photodiodes)):
-            pd = self.photodiodes[k]
-            x,y,w,h = pd.rect
-            if self.pdphases[k]==pd.period:
-                col = QColor(255,255,255)
-                self.pdphases[k] = 1
-            else:
-                col = QColor(0,0,0)
-                self.pdphases[k] += 1
-            p.fillRect(QRect(x,y,w,h), col)
+        self.showphotodiodes(p)
+        self.showgpios()
                 
         if self.k != self.last_k:
             self.notify()
+
+    def showgpios(self):
+        if len(self.gpios)==0:
+            return
+        for n in range(len(self.gpios)):
+            gp = self.gpios[n]
+            pin = gp.pin
+            if self.gpphases[n]>=gp.period:
+                val = 1
+                self.gpphases[n] = 1
+            else:
+                val = 0
+                self.gpphases[n] += 1
+            gpio.write(pin, val)
+
+    def showphotodiodes(self, p):
+        for n in range(len(self.photodiodes)):
+            pd = self.photodiodes[n]
+            x,y,w,h = pd.rect
+            if self.pdphases[n]>=pd.period:
+                col = QColor(255,255,255)
+                self.pdphases[n] = 1
+            else:
+                col = QColor(0,0,0)
+                self.pdphases[n] += 1
+            p.fillRect(QRect(x,y,w,h), col)
+        
 
     def notify(self):
         t = self.time.elapsed()/1000
