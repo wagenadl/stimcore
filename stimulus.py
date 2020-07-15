@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 import numpy as np
-from PyQt5.QtGui import QPixmap
+from PyQt5.QtGui import QPixmap, QImage
 from PyQt5.QtWidgets import QApplication
 
 class Stimulus:
@@ -15,18 +15,54 @@ class Stimulus:
         self.final_delay_s = 0
         self.background = [0,0,0]
         
-    def add_image(self, fn):
-        '''ADD_IMAGE - Add an image to the list
-        id = ADD_IMAGE(fn) adds an image to our collection based on its 
-        filename. The returned ID is an integer that can be used in 
-        SET_ORDER. IDs count up from zero, so you can also keep count
-        yourself.'''
-        self.fns.append(fn)
+    def add_image_from_file(self, fn):
+        '''ADD_IMAGE_FROM_FILE - Add an image to the list
+        id = ADD_IMAGE_FROM_FILE(fn) adds an image to our collection
+        based on its filename. The returned ID is an integer that can 
+        be used in SET_ORDER. IDs count up from zero, so you can also 
+        keep count yourself.'''
         Stimulus.app = QApplication.instance()
         if Stimulus.app is None:
             Stimulus.app = QApplication(['stimcore'])
+
+        self.fns.append(fn)
         self.pixmaps.append(QPixmap(fn))
         return len(self.fns) - 1
+
+    def add_image_from_array(self, ar, label=None):
+        '''ADD_IMAGE_FROM_ARRAY - Add an image to the list
+        id = ADD_IMAGE_FROM_ARRAY(ar) adds an image to our collection
+        based on a numpy array.
+        AR must be either HxW for a grayscale image or HxWx3 for RGB.
+        If the type of AR is integer (e.g., uint8), we assume pixel
+        values range from 0 (black) to 255 (white); otherwise, pixel
+        values must be between 0.0 (black) and 1.0 (white).
+        Optional argument LABEL specifies a name for the image in lieu
+        of a filename. By default, its numeric ID is used as a name.'''
+        Stimulus.app = QApplication.instance()
+        if Stimulus.app is None:
+            Stimulus.app = QApplication(['stimcore'])
+        
+        isint = np.issubdtype(ar.dtype, np.integer)
+        if isint:
+            ar = ar.astype(np.uint8)
+        else:
+            ar = (255.99999*ar).astype(np.uint8)
+        shp = ar.shape
+        if len(shp)==3 and shp[2]==3:
+            # RGB
+            h, w, _ = shp
+            img = QImage(ar.data, w, h, 3*w, QImage.Format_RGB888)
+        elif len(shp)==2:
+            h, w = shp
+            img = QImage(ar.data, w, h, w, QImage.Format_Grayscale8)
+        else:
+            raise ValueError('Unacceptable shape of array')
+        if label is None:
+            label = f'{len(self.fns)}'
+        self.fns.append(label)
+        self.pixmaps.append(QPixmap(img))
+            
     
     def set_order(self, order):
         '''SET_ORDER - Specify the order of image presentation
