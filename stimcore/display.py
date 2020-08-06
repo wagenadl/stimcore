@@ -30,7 +30,6 @@ class Display(QWidget):
         self.photodiodes = []
         self.gpios = []
 
-        self.show()
         # The paintEvent causes the app to then exit immediately if k is None.
         # Oddly, just running processEvents doesn't cause repaint
 
@@ -39,11 +38,15 @@ class Display(QWidget):
         scrs = Display.app.screens()
         if screen_number >= len(scrs):
             raise ValueError('Nonexistent screen')
-        self.windowHandle().setScreen(scrs[screen_number])
         if full_screen:
+            siz = scrs[screen_number].size()
+            print(siz.width(), siz.height())
+            self.resize(siz)
             self.showFullScreen()
         else:
             self.resize(640, 480)
+            self.show()
+        self.windowHandle().setScreen(scrs[screen_number])
         Display.app.exec() # This forces window to be painted black
         self.setCursor(QCursor(QBitmap(1,1), QBitmap(1,1)))
 

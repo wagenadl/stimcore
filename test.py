@@ -31,7 +31,8 @@ stim.set_refresh_rate(5)
 stim.set_initial_delay(.5)
 stim.set_final_delay(.5)
 
-disp = display.Display(full_screen=False)
+#disp = display.Display(full_screen=False)
+disp = display.Display()
 
 def foo(k, t):
     print(f'Foo {k} at {t}')
