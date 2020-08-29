@@ -13,6 +13,16 @@ class Stimulus:
       - SET_INITIAL_DELAY - Specify delay before first image
       - SET_FINAL_DELAY - Specify delay after final image
       - SET_BACKGROUND - Specify background color
+
+    Less frequently used methods are:
+      - ADD_IMAGE_FROM_FILE - Add an image to the list from a file
+      - ADD_IMAGE_FROM_ARRAY - Add an image to the list from an array
+      - RESET_ORDER - Reset order of image presentation
+      - PRESENTATION_ORDER - Return presentation order
+      - GET_IMAGE - Retrieve an image from the list
+      - IMAGE_NAME - Retrieve the filename or alternative label for an image
+      - FIND_IMAGE_BY_NAME - Find the ID of an image given its name
+
     This class is completely passive (it merely stores the images). The
     actual presentation of a stimulus sequence is the responsibility of
     the DISPLAY class.'''
@@ -93,8 +103,7 @@ class Stimulus:
         if label is None:
             label = f'{len(self.fns)}'
         self.fns.append(label)
-        self.pixmaps.append(QPixmap(img))
-            
+        self.pixmaps.append(QPixmap(img))            
     
     def set_order(self, order):
         '''SET_ORDER - Specify the order of image presentation
@@ -130,6 +139,19 @@ class Stimulus:
         GET_IMAGE(id), where ID is an ID as returned by ADD_IMAGE,
         returns the corresponding image as a QPixmap.'''
         return self.pixmaps[k]
+
+    def image_name(self, k):
+        '''IMAGE_NAME - Retrieve the filename or alternative label for an image
+        IMAGE_NAME(id) returns the filename or alternative label for the
+        image with the given ID.'''
+        return self.fns[k]
+
+    def find_image_by_name(self, name):
+        '''FIND_IMAGE_BY_NAME - Find the ID of an image given its name
+        FIND_IMAGE_BY_NAME(name) returns the ID of the image that matches
+        the given name exactly. Raises an exception if the image does 
+        not exist.'''
+        return self.fns.index(name)
     
     def set_initial_delay(self, dt_s):
         '''SET_INITIAL_DELAY - Specify delay before first image

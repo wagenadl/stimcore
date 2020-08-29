@@ -313,11 +313,19 @@ class Display:
         HEIGHT_CM() returns the height of the window in centimeters.'''
         return self._disp.height_cm()
     
-    def run(self, stim, target=None):
+    def run(self, stim, target=None, rel_target=None):
         '''RUN - Show a sequence of stimuli
         RUN(stim), where STIM is of type STIMULUS, runs through the
         given stimulus sequence.
         RUN(stim, target), where TARGET is an (x,y,w,h)-quad, limits
-        the stimulus to the given rectangle, specified in pixels.'''
+        the stimulus to the given rectangle, specified in pixels.
+        RUN(stim, rel_target=[x, y, w, h]) limits the stimulus to the
+        given rectangle, specified as a fraction of the window size. 
+        REL_TARGET overrides TARGET if both are given.'''
+        if rel_target is not None:
+            target = [int(rel_target[0]*self.width_pixels() + .5),
+                      int(rel_target[1]*self.height_pixels() + .5),
+                      int(rel_target[2]*self.width_pixels() + .5),
+                      int(rel_target[3]*self.height_pixels() + .5)]
         self._disp.run(stim, target)
         
