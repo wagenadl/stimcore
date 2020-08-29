@@ -4,10 +4,13 @@ from PyQt5.QtWidgets import QWidget, QApplication
 from PyQt5.QtCore import Qt, QTimer, QRect, QTime
 from PyQt5.QtGui import QPainter, QColor, QCursor, QBitmap
 import time
+import os
 from collections import namedtuple
 from . import gpio
 
 class _Display(QWidget):
+    if 'DISPLAY' not in os.environ or os.environ['DISPLAY'] == '':
+        os.environ['DISPLAY'] = ':0'
     app = QApplication.instance()
 
     def __init__(self, screen_number=0, full_screen=True):
@@ -245,7 +248,7 @@ class _Display(QWidget):
         t = self.time.elapsed()/1000
         dt = t - self.last_t
         fn = self.stim.fns[self.order[self.k]]
-        print(f'#Showing image {self.k} ({fn}) at {t:.3f} (delta={dt:.3f})')
+        #print(f'Showing image {self.k} ({fn}) at {t:.3f} (delta={dt:.3f})')
         self.last_t = t
         self.last_k = self.k
         for cb in self.callbacks:
