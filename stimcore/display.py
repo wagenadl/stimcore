@@ -7,7 +7,7 @@ import time
 from collections import namedtuple
 from . import gpio
 
-class Display(QWidget):
+class _Display(QWidget):
     app = QApplication.instance()
 
     def __init__(self, screen_number=0, full_screen=True):
@@ -17,11 +17,11 @@ class Display(QWidget):
         on which to display (counting from zero).
         DISPLAY(full_screen=False) creates a smaller window for testing.'''
 
-        Display.app = QApplication.instance()
-        if Display.app is None:
-            Display.app = QApplication(['stimcore'])
+        _Display.app = QApplication.instance()
+        if _Display.app is None:
+            _Display.app = QApplication(['stimcore'])
 
-        super(Display, self).__init__()
+        super(_Display, self).__init__()
 
         self.target = None
         self.k = None
@@ -35,7 +35,7 @@ class Display(QWidget):
 
         # If we don't show() first, we don't have a window handle, so
         # we cannot send ourselves to requested screen.
-        scrs = Display.app.screens()
+        scrs = _Display.app.screens()
         if screen_number >= len(scrs):
             raise ValueError('Nonexistent screen')
         if full_screen:
@@ -47,10 +47,18 @@ class Display(QWidget):
             self.resize(640, 480)
             self.show()
         self.windowHandle().setScreen(scrs[screen_number])
-        Display.app.exec() # This forces window to be painted black
+        _Display.app.exec() # This forces window to be painted black
         self.setCursor(QCursor(QBitmap(1,1), QBitmap(1,1)))
 
     def add_gpio(self, pin, period=2, delay=0):
+        '''ADD_GPIO - Add a GPIO signal
+        ADD_GPIO(pin) causes the given GPIO pin to be toggled up and down
+        periodically for synchronization.
+        By default, the signal goes up and down every other frame. 
+        Optional argument PERIOD makes it go up every n-th frame instead
+        of every second frame.
+        Optional argument DELAY makes the first appearance of the signal
+        be in the given frame (counted from zero) rather than in frame 0.'''
         gpio.make_output(pin)
         T = namedtuple('GP', ['pin', 'period', 'delay'])
         self.gpios.append(T._make((pin, period, delay)))
@@ -126,10 +134,10 @@ class Display(QWidget):
             else:
                 print('final')
                 self.k = None
-                Display.app.quit()
+                _Display.app.quit()
         else:
             self.k = None
-            Display.app.quit()
+            _Display.app.quit()
 
     def resizeEvent(self, evt):
         self.target = [0, 0, self.width(), self.height()]
@@ -171,7 +179,7 @@ class Display(QWidget):
 
 
         if True:
-            Display.app.exec()
+            _Display.app.exec()
             
         self.timer.stop()
         del self.timer
@@ -188,7 +196,7 @@ class Display(QWidget):
                    QColor(rgb[0], rgb[1], rgb[2]))
         if self.k is None or self.k<0 or self.k>=self.N:
             if self.k is None:
-                Display.app.quit()
+                _Display.app.quit()
             return
         iw = self.pixmap.width() # image size (pix)
         ih = self.pixmap.height()
@@ -237,8 +245,76 @@ class Display(QWidget):
         t = self.time.elapsed()/1000
         dt = t - self.last_t
         fn = self.stim.fns[self.order[self.k]]
-        print(f'Showing image {self.k} ({fn}) at {t:.3f} (delta={dt:.3f})')
+        print(f'#Showing image {self.k} ({fn}) at {t:.3f} (delta={dt:.3f})')
         self.last_t = t
         self.last_k = self.k
         for cb in self.callbacks:
             cb(self.k, t)
+
+class Display:
+    def __init__(self, screen_number=0, full_screen=True):
+        '''DISPLAY - Canvas for displaying images
+        DISPLAY() creates a full-screen display window.
+        Optional argument SCREEN_NUMBER specifies the number of the monitor
+        on which to display (counting from zero).
+        DISPLAY(full_screen=False) creates a smaller window for testing.'''
+        self._disp = _Display(screen_number, full_screen)
+
+    def add_gpio(self, pin, period=2, delay=0):
+        '''ADD_GPIO - Add a GPIO signal
+        ADD_GPIO(pin) causes the given GPIO pin to be toggled up and down
+        periodically for synchronization.
+        By default, the signal goes up and down every other frame. 
+        Optional argument PERIOD makes it go up every n-th frame instead
+        of every second frame.
+        Optional argument DELAY makes the first appearance of the signal
+        be in the given frame (counted from zero) rather than in frame 0.'''
+        self._disp.add_gpio(pin, period, delay)
+
+    def add_photodiode(self, rect, period=2, delay=0):
+        '''ADD_PHOTODIODE - Add a photodiode signal
+        ADD_PHOTODIODE([x,y,w,h]) causes a rectangle to flash on and off
+        periodically as a signal for a photodiode.
+        The location of the rectangle is given in pixels.
+        By default, the PD flashes on and off every other frame. 
+        Optional argument PERIOD makes it appear every n-th frame instead
+        of every second frame.
+        Optional argument DELAY makes the first appearance of the signal
+        be in the given frame (counted from zero) rather than in frame 0.'''
+        self._disp.add_photodiode(rect, period, delay)
+
+    def add_callback(self, cb):
+        '''ADD_CALLBACK - Add a function to be called at start of frame
+        ADD_CALLBACK(func) causes the given function to be called at
+        the start of every frame, with the frame number and the current
+        time (in seconds) as arguments.'''
+        self._disp.add_callback(cb)
+
+    def width_pixels(self):
+        '''WIDTH_PIXELS - Width of the window in pixels
+        WIDTH_PIXELS() returns the width of the window in pixels.'''
+        return self._disp.width_pixels()
+
+    def height_pixels(self):
+        '''HEIGHT_PIXELS - Height of the window in pixels
+        HEIGHT_PIXELS() returns the height of the window in pixels.'''
+        return self._disp.height_pixels()
+    
+    def width_cm(self):
+        '''WIDTH_CM - Width of the window in centimeters
+        WIDTH_CM() returns the width of the window in centimeters.'''
+        return self._disp.width_cm()
+
+    def height_cm(self):
+        '''HEIGHT_CM - Height of the window in centimeters
+        HEIGHT_CM() returns the height of the window in centimeters.'''
+        return self._disp.height_cm()
+    
+    def run(self, stim, target=None):
+        '''RUN - Show a sequence of stimuli
+        RUN(stim), where STIM is of type STIMULUS, runs through the
+        given stimulus sequence.
+        RUN(stim, target), where TARGET is an (x,y,w,h)-quad, limits
+        the stimulus to the given rectangle, specified in pixels.'''
+        self._disp.run(stim, target)
+        

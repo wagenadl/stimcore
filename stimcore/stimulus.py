@@ -5,6 +5,17 @@ from PyQt5.QtGui import QPixmap, QImage
 from PyQt5.QtWidgets import QApplication
 
 class Stimulus:
+    '''Class STIMULUS: A sequence of images with extra information
+    The most important methods are:
+      - ADD_IMAGE - Add an image to the sequence from file or numpy array
+      - SET_ORDER - Specify the order of image presentation
+      - SET_REFRESH_RATE - Set rate of image presentation    
+      - SET_INITIAL_DELAY - Specify delay before first image
+      - SET_FINAL_DELAY - Specify delay after final image
+      - SET_BACKGROUND - Specify background color
+    This class is completely passive (it merely stores the images). The
+    actual presentation of a stimulus sequence is the responsibility of
+    the DISPLAY class.'''
     app = QApplication.instance()
     def __init__(self):
         self.fns = []
@@ -63,7 +74,9 @@ class Stimulus:
             Stimulus.app = QApplication(['stimcore'])
         
         isint = np.issubdtype(ar.dtype, np.integer)
-        if isint:
+        if ar.dtype==np.uint8:
+            ar = ar.copy() # Needed if loaded straight from scipy.io
+        elif isint:
             ar = ar.astype(np.uint8)
         else:
             ar = (255.99999*ar).astype(np.uint8)
