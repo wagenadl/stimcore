@@ -41,6 +41,12 @@ class _Display(QWidget):
         scrs = _Display.app.screens()
         if screen_number >= len(scrs):
             raise ValueError('Nonexistent screen')
+
+        if screen_number>0:
+            self.show()
+            self.hide()
+            self.windowHandle().setScreen(scrs[screen_number])
+        
         if full_screen:
             siz = scrs[screen_number].size()
             print(siz.width(), siz.height())
