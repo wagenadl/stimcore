@@ -45,9 +45,9 @@ class Stimulus:
         Optional argument LABEL may be used to give the image an alternative
         name.'''
         if type(img)==str:
-            return add_image_from_file(img, label)
+            return self.add_image_from_file(img, label)
         elif type(img)==np.ndarray:
-            return add_image_from_array(img, label)
+            return self.add_image_from_array(img, label)
         else:
             raise ValueError('Must have a filename or a numpy array')
         

@@ -313,19 +313,44 @@ class Display:
         HEIGHT_CM() returns the height of the window in centimeters.'''
         return self._disp.height_cm()
     
-    def run(self, stim, target=None, rel_target=None):
+    def run(self, stim, target=None, rel_to=None):
         '''RUN - Show a sequence of stimuli
         RUN(stim), where STIM is of type STIMULUS, runs through the
         given stimulus sequence.
         RUN(stim, target), where TARGET is an (x,y,w,h)-quad, limits
         the stimulus to the given rectangle, specified in pixels.
-        RUN(stim, rel_target=[x, y, w, h]) limits the stimulus to the
-        given rectangle, specified as a fraction of the window size. 
-        REL_TARGET overrides TARGET if both are given.'''
-        if rel_target is not None:
-            target = [int(rel_target[0]*self.width_pixels() + .5),
-                      int(rel_target[1]*self.height_pixels() + .5),
-                      int(rel_target[2]*self.width_pixels() + .5),
-                      int(rel_target[3]*self.height_pixels() + .5)]
+        RUN(stim, target, rel_to=[W, H]) limits the 
+        stimulus to the given rectangle, specified in terms of pixels
+        of an image of size WxH.
+        Images from the stimulus sequence are always scaled (up or down)
+        to optimally fit in the target rectangle, possibly leaving
+        bands of background color along top and bottom, or along left and
+        right edges.
+
+        Note: REL_TO is meant for the following situation: You have
+        used images of size WxH to map a receptive field and found that
+        the receptive field is concentrated on a rectangle (x,y,w,h) of 
+        those images. Now you want to display the next set of stimuli 
+        inside that rectangle. Unless the ratio W:H is the same as 
+        the ratio of the window width : height, it would be an effort
+        to calculate the correct target rectangle. REL_TO makes it trivial.
+        '''
+        if rel_to is not None:
+            x, y, w, h = target
+            W, H = rel_to
+            ww = self.width_pixels()
+            hh =  self.height_pixels()
+            rx = ww / W
+            ry = hh / H
+            rat = min(rx, ry)
+            sw = W*rat
+            sh = H*rat
+            x0 = ww/2 - sw/2
+            y0 = hh/2 - sh/2
+            target = [int(x0 + x*rat + .5),
+                      int(y0 + y*rat + .5),
+                      int(w*rat + .5),
+                      int(h*rat + .5)]
+
         self._disp.run(stim, target)
         
