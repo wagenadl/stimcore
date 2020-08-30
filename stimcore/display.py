@@ -312,45 +312,40 @@ class Display:
         '''HEIGHT_CM - Height of the window in centimeters
         HEIGHT_CM() returns the height of the window in centimeters.'''
         return self._disp.height_cm()
-    
-    def run(self, stim, target=None, rel_to=None):
+
+    def find_pixel(self, xy, wh):
+        '''FIND_PIXEL - Find location of image pixel on screen
+        p = FIND_PIXEL((x,y), (w,h)) returns the screen location of the 
+        (topleft) corner of the pixel (X, Y) in an image of size WxH.
+        This is, of course, almost trivial, but the aspect ratio of the
+        image may not be the same as the aspect ratio of the display window,
+        so this method trivializes the calculation.
+        The result is a 2-ple.'''
+        iw, ih = wh # image width, height
+        ix, iy = xy # point of interest in image coords
+        ww = self.width_pixels() # window width
+        hh =  self.height_pixels()
+        rx = ww / iw
+        ry = hh / ih
+        rat = min(rx, ry) # effective scale of image on screen
+        sw = iw*rat # screen width of image
+        sh = ih*rat
+        x0 = ww/2 - sw/2 # screen position of top left of image
+        y0 = hh/2 - sh/2
+        x = x0 + ix*rat
+        y = y0 + iy*rat
+        return x, y
+
+    def run(self, stim, target=None):
         '''RUN - Show a sequence of stimuli
         RUN(stim), where STIM is of type STIMULUS, runs through the
         given stimulus sequence.
         RUN(stim, target), where TARGET is an (x,y,w,h)-quad, limits
         the stimulus to the given rectangle, specified in pixels.
-        RUN(stim, target, rel_to=[W, H]) limits the 
-        stimulus to the given rectangle, specified in terms of pixels
-        of an image of size WxH.
         Images from the stimulus sequence are always scaled (up or down)
         to optimally fit in the target rectangle, possibly leaving
         bands of background color along top and bottom, or along left and
         right edges.
-
-        Note: REL_TO is meant for the following situation: You have
-        used images of size WxH to map a receptive field and found that
-        the receptive field is concentrated on a rectangle (x,y,w,h) of 
-        those images. Now you want to display the next set of stimuli 
-        inside that rectangle. Unless the ratio W:H is the same as 
-        the ratio of the window width : height, it would be an effort
-        to calculate the correct target rectangle. REL_TO makes it trivial.
         '''
-        if rel_to is not None:
-            x, y, w, h = target
-            W, H = rel_to
-            ww = self.width_pixels()
-            hh =  self.height_pixels()
-            rx = ww / W
-            ry = hh / H
-            rat = min(rx, ry)
-            sw = W*rat
-            sh = H*rat
-            x0 = ww/2 - sw/2
-            y0 = hh/2 - sh/2
-            target = [int(x0 + x*rat + .5),
-                      int(y0 + y*rat + .5),
-                      int(w*rat + .5),
-                      int(h*rat + .5)]
-
         self._disp.run(stim, target)
         
