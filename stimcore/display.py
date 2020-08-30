@@ -209,14 +209,15 @@ class _Display(QWidget):
             return
         iw = self.pixmap.width() # image size (pix)
         ih = self.pixmap.height()
-        rx = ww/iw # ratio
-        ry = wh/ih
-        rat = min(rx, ry)
-        sw = iw*rat # actual size of image on screen
-        sh = ih*rat
-        x0 = self.target[0] + (ww-sw)//2 # margin
-        y0 = self.target[1] + (wh-sh)//2
-        p.drawPixmap(QRect(x0, y0, sw, sh), self.pixmap)
+        if iw>0 and ih>0:
+            rx = ww/iw # ratio
+            ry = wh/ih
+            rat = min(rx, ry)
+            sw = iw*rat # actual size of image on screen
+            sh = ih*rat
+            x0 = self.target[0] + (ww-sw)//2 # margin
+            y0 = self.target[1] + (wh-sh)//2
+            p.drawPixmap(QRect(x0, y0, sw, sh), self.pixmap)
         self.showphotodiodes(p)
         self.showgpios()
                 
