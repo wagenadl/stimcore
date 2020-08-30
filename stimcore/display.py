@@ -161,6 +161,7 @@ class _Display(QWidget):
             self.target = [0, 0, self.width(), self.height()]
         else:
             self.target = target
+        self.show()
         self.timer = QTimer(self)
         self.timer.setTimerType(Qt.PreciseTimer)
         self.timer.timeout.connect(self.timeout)
@@ -355,4 +356,7 @@ class Display:
         right edges.
         '''
         self._disp.run(stim, target)
+        
+    def close(self):
+        self._disp.hide()
         
