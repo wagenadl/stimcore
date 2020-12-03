@@ -104,6 +104,7 @@ class Stimulus:
             label = f'{len(self.fns)}'
         self.fns.append(label)
         self.pixmaps.append(QPixmap(img))            
+        return len(self.fns) - 1
     
     def set_order(self, order):
         '''SET_ORDER - Specify the order of image presentation
