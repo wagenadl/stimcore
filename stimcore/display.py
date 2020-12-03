@@ -358,5 +358,10 @@ class Display:
         self._disp.run(stim, target)
         
     def close(self):
+        '''CLOSE - Close the display window
+        CLOSE() closes the display window. This is not what you normally
+        want to do: normally you just want the black background to stay
+        on forever, but on MS Windows, this is the only way to hide the
+        window without crashing the software.'''
         self._disp.hide()
         
