@@ -321,28 +321,33 @@ class Display:
         HEIGHT_CM() returns the height of the window in centimeters.'''
         return self._disp.height_cm()
 
+    def find_pixel_static(xy, wh, WH):
+        iw, ih = wh  # image width, height
+
+        ix, iy = xy  # point of interest in image coords
+        ww, hh = WH
+        rx = ww / iw
+        ry = hh / ih
+        rat = min(rx, ry)  # effective scale of image on screen
+        sw = iw * rat  # screen width of image
+        sh = ih * rat
+        x0 = ww / 2 - sw / 2  # screen position of top left of image
+        y0 = hh / 2 - sh / 2
+        x = x0 + ix * rat
+        y = y0 + iy * rat
+        return x, y
+
     def find_pixel(self, xy, wh):
         '''FIND_PIXEL - Find location of image pixel on screen
-        p = FIND_PIXEL((x,y), (w,h)) returns the screen location of the 
+        p = FIND_PIXEL((x,y), (w,h)) returns the screen location of the
         (topleft) corner of the pixel (X, Y) in an image of size WxH.
         This is, of course, almost trivial, but the aspect ratio of the
         image may not be the same as the aspect ratio of the display window,
         so this method trivializes the calculation.
         The result is a 2-ple.'''
-        iw, ih = wh # image width, height
-        ix, iy = xy # point of interest in image coords
-        ww = self.width_pixels() # window width
-        hh =  self.height_pixels()
-        rx = ww / iw
-        ry = hh / ih
-        rat = min(rx, ry) # effective scale of image on screen
-        sw = iw*rat # screen width of image
-        sh = ih*rat
-        x0 = ww/2 - sw/2 # screen position of top left of image
-        y0 = hh/2 - sh/2
-        x = x0 + ix*rat
-        y = y0 + iy*rat
-        return x, y
+        ww = self.width_pixels()  # window width
+        hh = self.height_pixels()
+        return Display.find_pixel_static(xy, wh, (ww,hh))
 
     def run(self, stim, target=None):
         '''RUN - Show a sequence of stimuli
