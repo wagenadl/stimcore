@@ -18,19 +18,6 @@ On other operating systems, pip or conda may be convenient.
 On Linux, the most convenient thing to do is to create a soft link to the "stimcore" subfolder in $HOME/.local/lib/python3.9/site-packages. 
 (Replace "3.9" with your own version of python.) If you use PyCharm on Windows, you can add stimcore as a root to your project.
 
-# Essential caveat
-
-On Linux screen "tearing" is a significant problem under X11. (It actually seems to be a design flaw in X11 itself. You can read about 
-double buffering techniques on the internet until you are blue in the face, but the problem does not go away even with the X11 DOUBLE-BUFFER 
-extension.) Fortunately, Wayland solves this problem entirely. Wayland is available in more and more distributions including Ubuntu 20.04.
-
-On the Raspberry Pi, Wayland is available starting from Ubuntu 21.04. After installation, you will need to run
-
-    sudo apt update
-    sudo apt upgrade
-
-to actually get it to work.
-
 # Usage
 
 See "test.py" and "teartest.py" for examples of usage. These examples depend on numpy, which you probably already have. If not:
@@ -118,3 +105,20 @@ We recommend splurging on a Pi with 8 GB of RAM, as StimCore needs to hold all t
 On Windows, this is also true, but we have seen occasional glitches where the system "hangs" for several hundred milliseconds, apparently while engaged 
 in some background housekeeping task.  For best results, careful tests are recommended before running StimCore on a computer that is simultaneously used for
 demanding data acquisition.
+
+# Essential caveat on X11
+
+On Linux screen "tearing" is a significant problem under X11. (It actually seems to be a design flaw in X11 itself. You can read about 
+double buffering techniques on the internet until you are blue in the face, but the problem does not go away even with the X11 DOUBLE-BUFFER 
+extension.) Fortunately, Wayland solves this problem entirely. Wayland is available in more and more distributions, including Ubuntu 20.04.
+
+On the Raspberry Pi, Wayland is available starting from Ubuntu 21.04. After installation, you will need to run
+
+    sudo apt update
+    sudo apt upgrade
+
+to actually get it to work. On the login screen, after clicking on your username, there should be a little "settings gear" icon in the bottom right.
+Click that and select "Gnome" rather than "Gnome on X11" to enable Wayland. Once logged in, you can verify in "Settings → About" whether you are actually
+running Wayland or X11. Visually, the two are indistinguishable.
+
+(In case it is not obvious: tearing is problematic for at least two reasons: First, tears in the display can make for rather salient stimuli. Second, especially when using stimcore simultaneously with high-time-resolution recording techniques, tearing can mean that the synchronization between the stimulus and the "photodiode" signal is off by 16.7 ms, or however fast your monitor refreshes. This can easily lead to misinterpretation of resulting data.)
