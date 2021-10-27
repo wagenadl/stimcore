@@ -5,6 +5,7 @@ from PyQt5.QtCore import Qt, QTimer, QRect, QTime
 from PyQt5.QtGui import QPainter, QColor, QCursor, QBitmap
 import time
 import os
+import numpy as np
 from collections import namedtuple
 from . import gpio
 
@@ -348,6 +349,30 @@ class Display:
         ww = self.width_pixels()  # window width
         hh = self.height_pixels()
         return Display.find_pixel_static(xy, wh, (ww,hh))
+
+    def angle_to_pixel(self, theta, screendist_cm):
+        '''ANGLE_TO_PIXEL - Convert a visual angle to a pixel count
+        npix = ANGLE_TO_PIXEL(theta, screendist_cm) calculates the number of
+        pixels on the screen corresponding to a given visual half angle theta.'''
+
+        sw_pix = self.width_pixels()
+        #sh_pix = self.height_pixels()
+        sw_cm = self.width_cm()
+        #sh_cm = self.height_cm()
+        iw_cm = np.tan(theta * np.pi / 180) * screendist_cm
+        iw_pix = int(sw_pix * iw_cm / sw_cm)
+        return iw_pix
+
+    def pixel_to_angle(self, npix, screendist_cm):
+        '''PIXEL_TO_ANGLE - Inverse of ANGLE_TO_PIXEL'''
+        sw_pix = self.width_pixels()
+        # sh_pix = self.height_pixels()
+        sw_cm = self.width_cm()
+        # sh_cm = self.height_cm()
+        iw_pix = npix
+        iw_cm = iw_pix * sw_cm / sw_pix
+        theta = (180 / np.pi) * np.atan(iw_cm/screendist_cm)
+        return theta
 
     def run(self, stim, target=None):
         '''RUN - Show a sequence of stimuli
