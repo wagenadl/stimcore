@@ -47,14 +47,16 @@ class _Display(QWidget):
             self.show()
             self.hide()
             self.windowHandle().setScreen(scrs[screen_number])
-        
+
+        siz = scrs[screen_number].size()
+        self.screensize = (siz.width(), siz.height())
+
         if full_screen:
-            siz = scrs[screen_number].size()
-            print(siz.width(), siz.height())
+            print(self.screensize)
             self.resize(siz)
             self.showFullScreen()
         else:
-            self.resize(640, 480)
+            self.resize(self.screensize[0]*480//self.screensize[1], 480)
             self.show()
         self.windowHandle().setScreen(scrs[screen_number])
         _Display.app.exec() # This forces window to be painted black
@@ -102,8 +104,8 @@ class _Display(QWidget):
         '''HEIGHT_PIXELS - Height of the window in pixels
         HEIGHT_PIXELS() returns the height of the window in pixels.'''
         return self.height()
-        
-    def width_cm(self):
+
+    def windowwidth_cm(self):
         '''WIDTH_CM - Width of the window in centimeters
         WIDTH_CM() returns the width of the window in centimeters.'''
         scr = self.windowHandle().screen()
@@ -113,7 +115,7 @@ class _Display(QWidget):
         wmm = sizmm.width()
         return (wmm/10) * self.width_pixels() / wpix
 
-    def height_cm(self):
+    def windowheight_cm(self):
         '''HEIGHT_CM - Height of the window in centimeters
         HEIGHT_CM() returns the height of the window in centimeters.'''
         scr = self.windowHandle().screen()
@@ -122,6 +124,23 @@ class _Display(QWidget):
         hpix = sizpix.height()
         hmm = sizmm.height()
         return (hmm/10) * self.height_pixels() / hpix
+
+
+    def width_cm(self):
+        '''WIDTH_CM - Width of the screen in centimeters
+        WIDTH_CM() returns the width of the screen in centimeters.'''
+        scr = self.windowHandle().screen()
+        sizmm = scr.physicalSize()
+        wmm = sizmm.width()
+        return wmm/10
+
+    def height_cm(self):
+        '''HEIGHT_CM - Height of the screen in centimeters
+        HEIGHT_CM() returns the height of the screen in centimeters.'''
+        scr = self.windowHandle().screen()
+        sizmm = scr.physicalSize()
+        hmm = sizmm.height()
+        return hmm/10
 
     def timeout(self):
         if self.k is None:
@@ -312,6 +331,16 @@ class Display:
         HEIGHT_PIXELS() returns the height of the window in pixels.'''
         return self._disp.height_pixels()
     
+    def windowwidth_cm(self):
+        '''WINDOWWIDTH_CM - Width of the window in centimeters
+        WINDOWWIDTH_CM() returns the width of the window in centimeters.'''
+        return self._disp.windowwidth_cm()
+
+    def windowheight_cm(self):
+        '''WINDOWHEIGHT_CM - Height of the window in centimeters
+        WINDOWHEIGHT_CM() returns the height of the window in centimeters.'''
+        return self._disp.windowheight_cm()
+
     def width_cm(self):
         '''WIDTH_CM - Width of the window in centimeters
         WIDTH_CM() returns the width of the window in centimeters.'''
@@ -353,7 +382,11 @@ class Display:
     def angle_to_pixel(self, theta, screendist_cm):
         '''ANGLE_TO_PIXEL - Convert a visual angle to a pixel count
         npix = ANGLE_TO_PIXEL(theta, screendist_cm) calculates the number of
-        pixels on the screen corresponding to a given visual half angle theta.'''
+        pixels on the screen corresponding to a given visual half angle theta.
+        This only uses width and not height of screen.
+        The calculation is correct fo full-screen mode. For non-fullscreen
+        mode, the calculation is as if the output is going to be scaled to the
+        full screen in post.'''
 
         sw_pix = self.width_pixels()
         #sh_pix = self.height_pixels()
