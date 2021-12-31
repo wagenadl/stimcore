@@ -20,11 +20,11 @@ ar[12, 19] = 255
 
 stim = stimulus.Stimulus()
 
-stim.add_image_from_file('test/one.png')
-stim.add_image_from_file('test/two.png')
-stim.add_image_from_file('test/three.png')
-stim.add_image_from_file('test/four.png')
-stim.add_image_from_file('test/five.png')
+stim.add_image_from_file('testdata/one.png')
+stim.add_image_from_file('testdata/two.png')
+stim.add_image_from_file('testdata/three.png')
+stim.add_image_from_file('testdata/four.png')
+stim.add_image_from_file('testdata/five.png')
 
 stim.add_image_from_array(ar)
 
